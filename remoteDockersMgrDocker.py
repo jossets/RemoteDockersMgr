@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 import json
 import datetime 
+
 from remoteDockersMgrSsh import *
-from remoteDockersMgrConfig import *
+
 
 #
 #{"Command":"\"/docker-entrypoint.sh nginx -g 'daemon off;'\"",
@@ -20,21 +23,20 @@ from remoteDockersMgrConfig import *
 # "Status":"Up 42 seconds"}
 def remote_docker_ps_all(server):
     dockers = []
-    #print("remote_docker_ps_all "+server['name'])
+    # print("remote_docker_ps_all "+server['name'])
     ret = run_cmd(server, [
         "docker ps --all --no-trunc --format='{{json .}}'",
-        ]) 
-    #print(ret)
+    ])
+    # print(ret)
     for line in ret.splitlines():
-        #print(line)
+        # print(line)
         try:
             js = json.loads(line)
-            #print("{0}  {1}   {2}".format(js['Image'], js['State'], js['Status']))
+            # print("{0}  {1}   {2}".format(js['Image'], js['State'], js['Status']))
             dockers.append(js)
         except:
             pass
     return dockers
-
 
 
 
@@ -67,7 +69,7 @@ def remote_docker_run(server, image, containername="", dockerporttoexpose=0, lab
 def remote_docker_kill(server, id):
     dockers = []
     ret = run_cmd(server, [
-        f"docker rm -f {id}",   # so brutal :)
-        ]) 
-    ret=ret.strip()    
+        f"docker rm -f {id}",  # so brutal :)
+    ])
+    ret = ret.strip()
     return ret
