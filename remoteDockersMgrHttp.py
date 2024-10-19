@@ -27,6 +27,10 @@ def clean_image(image):
 
 def clean_base64(image):
     return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz1234567890+=/", image))
+   
+    
+def clean_label(image):
+    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz1234567890=_-.", image))
 
 
 def clean_dockerid(id):
@@ -120,9 +124,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         port = clean_image(portraw)
 
         labelraw = self.param_get('label')
-        label = clean_image(labelraw)
+        label = clean_label(labelraw)
+        print(label)
 
-        ret = remote_docker_run(serverentry, image, name, port, label)
+        ret = remote_docker_run(serverentry, image, name, port, label, config()['watchdogleaseduration'])
 
         json_str = json.dumps(ret)
         self.send_response(200)

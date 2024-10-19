@@ -3,6 +3,8 @@
 from remoteDockersMgrBash import *
 from remoteDockersMgrDocker import *
 from remoteDockersMgrHttp import *
+from remoteDockersMgrWatchdog import *
+
 
 
 def main():
@@ -39,7 +41,17 @@ def main():
                 server['status'] = 'ready'
                 print("Status: Ready\n", flush=True)
 
-    print("|\n| Run HTTP server and server", flush=True)
+
+    
+    #
+    # VM watchdog 
+    if config()['enablewatchdog']:  
+        th = threading.Thread(target=VMWatchdogThread) 
+        th.daemon = True
+        th.start()
+
+
+    print("|\n| Run HTTP server and serve", flush=True) 
     HTTP_serve_forever(config()['httpserverhost'], config()['httpserverport'])
     exit(0)
 

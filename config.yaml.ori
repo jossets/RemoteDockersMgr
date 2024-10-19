@@ -2,6 +2,8 @@ debugmode: true
 
 checkserverlogin: false
 checkservermem: false
+enablewatchdog: true
+watchdogleaseduration: 120
 
 httpserverhost: 0.0.0.0
 httpserverport: 14000
