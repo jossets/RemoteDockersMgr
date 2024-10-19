@@ -3,7 +3,6 @@
 import base64
 import traceback
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json
 from urllib.parse import urlparse, parse_qs
 
 from remoteDockersMgrConfig import *

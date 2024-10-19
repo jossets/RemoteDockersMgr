@@ -2,12 +2,8 @@
 
 # Ssh command
 
-import paramiko
-from scp import SCPClient
 import sys
 import time
-import threading 
-from remoteDockersMgrConfig import *
 
 import paramiko
 
