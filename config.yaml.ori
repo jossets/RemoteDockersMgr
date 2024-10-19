@@ -1,0 +1,31 @@
+debugmode: true
+
+checkserverlogin: false
+checkservermem: false
+
+httpserverhost: 0.0.0.0
+httpserverport: 14000
+secret: Abcdefghijk12$
+
+servers:
+ - name: ChallServer01
+   host: 10.0.0.23
+   port: 22
+   user: ctf
+   password: XXXXXXXXXXXXXX
+   privatekeyfile:  
+   host_public: challs01.myctf.org
+   host_public_baseport: 14100
+   maxclient: 9
+   enabled: true 
+
+ - name: ChallServer02
+   host: 10.0.0.24
+   port: 22
+   user: ctf
+   password: XXXXXXXXXXXXXX
+   privatekeyfile:   
+   host_public: challs02.myctf.org
+   host_public_baseport: 15100
+   maxclient: 10   
+   enabled: false
