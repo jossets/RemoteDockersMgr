@@ -37,6 +37,8 @@ def clean_label(image):
 def clean_dockerid(id):
     return ''.join(filter(lambda c: c in "ABCDEFabcdef1234567890", id))
 
+def clean_port(port):
+    return ''.join(filter(lambda c: c in "1234567890", port))
 def is_base64(sb):
         try:
                 if isinstance(sb, str):
@@ -68,6 +70,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     # Parse parameters
     def param_get(self, param):
         query_components = parse_qs(urlparse(self.path).query)
+        if config()['debugmode']:
+            print(query_components)
         # print(query_components)
         paramvalue = ""
         if param in query_components:
@@ -139,6 +143,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         server = clean_string(serverraw)
         # print(server)
         # print("do_GET_dockerps: ["+server+"]")
+        if config()['debugmode']:
+            print("do_GET_dockerps: ["+server+"]")
         serverentry = config_get_server(server)
         if (not (server in config_get_servers())) or (serverentry == None):
             self.do_GET_error("Bad server name")
@@ -161,19 +167,72 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             return
 
         imageraw = self.param_get('image')
+        # check if image exists
+        if not imageraw:
+            self.do_GET_error("Bad image name")
+            return
+        
+        if config()['debugmode']:
+            print("do_GET_dockerrun: ["+imageraw+"]")
+        
+        # Check if image is clean
+        if not clean_image(imageraw) == imageraw:
+            self.do_GET_error("Bad image name")
+            return
+        
         image = clean_image(imageraw)
         # print(image)
 
+        # check if name exists
+        if not self.param_get('name'):
+            self.do_GET_error("Bad name")
+            return
+        
         nameraw = self.param_get('name')
+
+        if config()['debugmode']:
+            print("do_GET_dockerrun: ["+nameraw+"]")
+            
+        
+        # Check if name is clean
+        if not clean_image(nameraw) == nameraw:
+            self.do_GET_error("Bad name")
+            return
         name = clean_image(nameraw)
         # print(name)
 
+        # check if port exists
+        if not self.param_get('port'):
+            self.do_GET_error("Bad port")
+            return
+        
         portraw = self.param_get('port')
+        
+        if config()['debugmode']:
+            print("do_GET_dockerrun: ["+portraw+"]")
+            
+        # Check if port is clean
+        if not clean_port(portraw) == portraw:
+            self.do_GET_error("Bad port")
+            return
         port = clean_image(portraw)
-
+        
+        # check if label exists
+        if not self.param_get('label'):
+            self.do_GET_error("Bad label")
+            return
+        
         labelraw = self.param_get('label')
+
+        if config()['debugmode']:
+            print("do_GET_dockerrun: ["+labelraw+"]")
+        
+        # Check if label is clean
+        if not clean_label(labelraw) == labelraw:
+            self.do_GET_error("Bad label")
+            return
+        
         label = clean_label(labelraw)
-        print(label)
 
         ret = remote_docker_run(serverentry, image, name, port, label, config()['watchdogleaseduration'])
 
@@ -192,8 +251,32 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             return
 
         idraw = self.param_get('id')
+        # check if id exists
+        if not idraw:
+            self.do_GET_error("Bad docker id")
+            return
+        
+        if config()['debugmode']:
+            print("do_GET_dockerdestroy: ["+idraw+"]")
+        
+        # Check if id is clean
+        if not clean_dockerid(idraw) == idraw:
+            self.do_GET_error("Bad docker id")
+            return
+        
         id = clean_dockerid(idraw)
-
+        
+        # check if container exists
+        dockers = remote_docker_ps_all(serverentry)
+        found = False
+        for docker in dockers:
+            if docker['ID'] == id:
+                found = True
+                break
+        if not found:
+            self.do_GET_error("Docker id not found")
+            return
+        
         ret = remote_docker_kill(serverentry, id)
         json_str = json.dumps(ret)
         self.send_response(200)

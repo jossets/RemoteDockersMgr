@@ -17,6 +17,18 @@ Or the private key path:
 
 Note: The password is prioritary over the private key file, if both are provided, the password will be used. For security reasons, it is recommended to use the private key file.
 
+### How to add authentication with a secret
+
+- Add string in `secret` of `config.yaml` file
+- Convert the string to base64
+- Add `?secret=base64string` to the URL to access the API (do not forget to replace `base64string` by the base64 string)
+
+```bash
+curl "http://localhost:14000/serverlist?secret=QWJjZGVmZ2hpamsxMiQ="
+```
+
+> ["ChallServer01", "ChallServer02"]
+
 ### Start
 
 ```bash
