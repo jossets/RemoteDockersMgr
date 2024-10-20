@@ -7,6 +7,7 @@ from remoteDockersMgrSsh import *
 from remoteDockersMgrDocker import *
 
 # "Labels":"USERID_345642456=,maintainer=NGINX Docker Maintainers \u003cdocker-maint@nginx.com\u003e",
+
 def get_label(labels, label):
     arraylabels = labels.split(',')
     for entry in arraylabels:

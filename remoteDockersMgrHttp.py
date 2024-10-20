@@ -2,6 +2,7 @@
 
 import base64
 import traceback
+import re
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -18,24 +19,36 @@ def clean_string(text):
 
 
 def clean_param(uid):
-    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz1234567890_-", uid))
+    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-", uid))
 
 
 def clean_image(image):
-    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz1234567890_-:/.", image))
+    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-:/.", image))
 
 
 def clean_base64(image):
-    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz1234567890+=/", image))
+    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+=/", image))
    
     
 def clean_label(image):
-    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyz1234567890=_-.", image))
+    return ''.join(filter(lambda c: c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890=_-.", image))
 
 
 def clean_dockerid(id):
     return ''.join(filter(lambda c: c in "ABCDEFabcdef1234567890", id))
 
+def is_base64(sb):
+        try:
+                if isinstance(sb, str):
+                        # If there's any unicode here, an exception will be thrown and the function will return false
+                        sb_bytes = bytes(sb, 'ascii')
+                elif isinstance(sb, bytes):
+                        sb_bytes = sb
+                else:
+                        raise ValueError("Argument must be string or bytes")
+                return base64.b64encode(base64.b64decode(sb_bytes)) == sb_bytes
+        except Exception:
+                return False
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     # Default response
@@ -72,10 +85,45 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         # print("Check secret")
         if (config()['secret'] == "") or (config()['secret']) == None:
             return True
-        secretraw = self.param_get('secret')
-        secretbase64 = clean_base64(secretraw)
-        secret = base64.b64decode(secretbase64)
-        return secret == config()['secret']
+        try:
+            secretraw = self.param_get('secret')
+            # check if secretraw is provided
+            if secretraw == "":
+                if config()['debugmode']:
+                    print("No secret provided")
+                return False
+            # check if secretraw can be in str
+            if not hasattr(secretraw, '__str__'):
+                if config()['debugmode']:
+                    print("Secret provided is not a string")
+                return False
+            # check if secretraw is printable
+            if not secretraw.isprintable():
+                if config()['debugmode']:
+                    print("Secret provided is not printable")
+                return False
+            # check if secretraw is base64
+            if not is_base64(secretraw):
+                if config()['debugmode']:
+                    print("Secret provided is not base64: ["+secretraw+"]")
+                return False
+            # check if secretraw is clean base64
+            if not clean_base64(secretraw) == secretraw:
+                if config()['debugmode']:
+                    print("Secret provided is not clean base64: ["+secretraw+"]")
+                return False
+            secretbase64 = clean_base64(secretraw)
+            secret = base64.b64decode(secretbase64)
+            # check if we can decode the secret
+            secret = secret.decode('utf-8')
+            # check if secret is clean
+            secret = clean_string(secret)
+            if config()['debugmode']:
+                print("Secret provided: "+str(secret) + " expected: "+config()['secret'] + " match: "+str(str(secret) == config()['secret']))
+            return str(secret) == config()['secret']
+        except Exception as e:
+            print("Error in checkSecret: "+str(e))
+            return False
 
     def do_GET_serverlist(self):
         status = config_get_servers()

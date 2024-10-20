@@ -58,6 +58,12 @@ def check_config(conf):
     if not isinstance(conf.get('checkservermem'), bool):
         errors.append("checkservermem must be a boolean")
 
+    if not isinstance(conf.get('enablewatchdog'), bool):
+        errors.append("enablewatchdog must be a boolean")
+        
+    if not isinstance(conf.get('watchdogleaseduration'), int) or conf.get('watchdogleaseduration') < 1 or conf.get('watchdogleaseduration') > 86400:
+        errors.append("watchdogleaseduration must be a positive integer between 1 and 86400")
+        
     if not isinstance(conf.get('httpserverhost'), str):
         errors.append("httpserverhost must be a string")
 
