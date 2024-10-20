@@ -21,6 +21,8 @@ from remoteDockersMgrSsh import *
 # "Size":"1.09kB (virtual 187MB)",
 # "State":"running",
 # "Status":"Up 42 seconds"}
+#
+
 def remote_docker_ps_all(server):
     dockers = []
     # print("remote_docker_ps_all "+server['name'])
